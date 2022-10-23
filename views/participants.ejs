@@ -15,10 +15,10 @@
         <table class="table table-hover">
         <thead>
             <tr>
-            <th>Name <input id="n_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
-            <th>Phone Number <input id="pn_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
-            <th>Email <input id="e_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
-            <th>Points <input id="p_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Name <input id="n-<%= n_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Phone Number <input id="pn-<%= pn_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Email <input id="e-<%= e_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Points <input id="p-<%= p_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
 
             <th class="d-print-none">
                 <a class="btn btn-sm btn-success" href="/add_participant" title="Add a new participant">Add Participant</a>
@@ -45,4 +45,29 @@
 
     </div>
 
+
+    <form action="/participants_name_desc" method="post">
+        <button type="submit" id="n-desc-button" style="visibility: hidden;"/></button>
+      </form>
+      <form action="/participants_name_asc" method="post">
+        <button type="submit" id="n-asc-button" style="visibility: hidden;"/></button>
+      </form>
+      <form action="/participants_phone_number_desc" method="post">
+        <button type="submit" id="pn-desc-button" style="visibility: hidden;"/></button>
+      </form>
+      <form action="/participants_phone_number_asc" method="post">
+        <button type="submit" id="pn-asc-button" style="visibility: hidden;"/></button>
+      </form>
+      <form action="/participants_email_desc" method="post">
+        <button type="submit" id="e-desc-button" style="visibility: hidden;"/></button>
+      </form>
+      <form action="/participants_email_asc" method="post">
+        <button type="submit" id="e-asc-button" style="visibility: hidden;"/></button>
+      </form>
+      <form action="/participants_points_desc" method="post">
+        <button type="submit" id="p-desc-button" style="visibility: hidden;"/></button>
+      </form>
+      <form action="/participants_points_asc" method="post">
+        <button type="submit" id="p-asc-button" style="visibility: hidden;"/></button>
+      </form>
 <%- include('partials/_footer.ejs') %>

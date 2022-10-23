@@ -51,7 +51,7 @@ const create_points_table_SQL = `CREATE TABLE IF NOT EXISTS ${POINTS_TABLE} (
 // REDEMPTIONS TABLE
 const create_redemptions_table_SQL = `CREATE TABLE IF NOT EXISTS ${REDEMPTIONS_TABLE} (
     id INTEGER PRIMARY KEY,
-    REDEEMED_POINTS REAL NOT NULL UNIQUE,
+    POINTS REAL NOT NULL UNIQUE,
     TIME_ENTERED DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PHONE_NUMBER INTEGER NOT NULL,
     FOREIGN KEY (PHONE_NUMBER)
@@ -101,7 +101,7 @@ function getParticipants(res) {
         if (err) {
             return console.log(err.message);
         }
-        res.render('participants', {model: rows, search: false, n_sort_id: "desc", pn_sort_id: "desc", p_sort_id: "desc"});
+        res.render('participants', {model: rows, search: false, n_sort_id: "desc", pn_sort_id: "desc", e_sort_id: "desc", p_sort_id: "desc"});
     });
 }
 
@@ -111,6 +111,7 @@ function participantOrderRender(res, rows, order, order_by)
     let order_id = utils.inverseSortOrder(order.toLowerCase());
     let n_sort_id = "desc";
     let pn_sort_id = "desc";
+    let e_sort_id = "desc";
     let p_sort_id = "desc";
 
     switch(order_by)
@@ -121,11 +122,14 @@ function participantOrderRender(res, rows, order, order_by)
         case "PHONE_NUMBER":
             pn_sort_id = order_id;
             break;
+        case "EMAIL":
+            e_sort_id = order_id;
+            break;
         case "POINTS":
             p_sort_id = order_id;
             break;
     }
-    res.render('participants', {model: rows, search: false, n_sort_id: n_sort_id,  pn_sort_id: pn_sort_id, p_sort_id: p_sort_id});
+    res.render('participants', {model: rows, search: false, n_sort_id: n_sort_id,  pn_sort_id: pn_sort_id, e_sort_id: e_sort_id, p_sort_id: p_sort_id});
 }
 
 // Get the participants by some kind of order
@@ -139,7 +143,7 @@ function getParticipantsByOrder(res, order_by, desc=true)
         if (err) {
                 return console.log(err.message);
         }
-        participantOrderRender(res, rows, formatted_date, order, order_by);
+        participantOrderRender(res, rows, order, order_by);
     });
 }
 
@@ -149,7 +153,7 @@ function getParticipantsByNameDesc(res) {
 }
 
 // Get all of the active participants in asscending order by player name
-function getParticipantsByPlayerNameAsc(res) {
+function getParticipantsByNameAsc(res) {
     getParticipantsByOrder(res, "NAME", false);
 }
 
@@ -163,12 +167,22 @@ function getParticipantsByPhoneNumberAsc(res) {
     getParticipantsByOrder(res, "PHONE_NUMBER", false);
 }
 
-// Get all of the active participants in descending order by count
+// Get all of the active participants in descending order by email
+function getParticipantsByEmailDesc(res) {
+    getParticipantsByOrder(res, "EMAIL", true);
+}
+
+// Get all of the active participants in ascending order by email
+function getParticipantsByEmailAsc(res) {
+    getParticipantsByOrder(res, "EMAIL", false);
+}
+
+// Get all of the active participants in descending order by points
 function getParticipantsByPointsDesc(res) {
     getParticipantsByOrder(res, "POINTS", true);
 }
 
-// Get all of the active participants in ascending order by count
+// Get all of the active participants in ascending order by points
 function getParticipantsByPointsAsc(res) {
     getParticipantsByOrder(res, "POINTS", false);
 }
@@ -185,7 +199,7 @@ function searchParticipants(req, res)
             if(err) {
                 return console.log(err.message);
             }
-            res.render('participants', {model: rows, search: true, n_sort_id: "desc", pn_sort_id: "desc", p_sort_id: "desc"});
+            res.render('participants', {model: rows, search: true, n_sort_id: "desc", pn_sort_id: "desc", e_sort_id: "desc", p_sort_id: "desc"});
         });
     }
     else
@@ -558,4 +572,12 @@ module.exports = {
     editParticipantByPhoneNumber,
     removeParticipantForm,
     removeParticipantByPhoneNumber,
+    getParticipantsByNameDesc,
+    getParticipantsByNameAsc,
+    getParticipantsByPhoneNumberDesc,
+    getParticipantsByPhoneNumberAsc,
+    getParticipantsByEmailDesc,
+    getParticipantsByEmailAsc,
+    getParticipantsByPointsDesc,
+    getParticipantsByPointsAsc,
 }

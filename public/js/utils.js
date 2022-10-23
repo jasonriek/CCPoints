@@ -2,8 +2,8 @@ let print_button = document.getElementById('print-button');
 let download_report_button = document.getElementById('download-report-button');
 
 // Sorting Buttons
-/*
-let sorting_columns_ids = ['pn', 'pid', 'wsc'];
+
+let sorting_columns_ids = ['n', 'pn', 'e', 'p'];
 let sorting_colums = {};
 for(let column of sorting_columns_ids)
 {
@@ -19,7 +19,7 @@ for(let column of sorting_columns_ids)
     }
 
 }
-*/
+
 
 print_button.onclick = function(){
     window.print();
