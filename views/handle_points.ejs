@@ -1,0 +1,36 @@
+<%- include("_header") -%>
+
+<% if (page === "points") { %>
+  <h1>Add Points - (<%= model.NAME %>)</h1>
+<% } %>
+<% else { %>
+  <h1>Redeem Points - (<%= model.NAME %>)</h1>
+<% } %>
+<form action="/add_points/<%= model.PHONE_NUMBER %>" method="post">
+  <div class="form-horizontal">
+
+    <div class="form-group row">
+      <label class="col-form-label col-sm-2" for="POINTS">Points</label>
+      <div class="col-sm-7">
+        <input class="form-control" name="POINTS" id="p" value="" required />
+      </div>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-form-label col-sm-2" for="PHONE_NUMBER">Phone Number</label>
+        <div class="col-sm-7">
+          <input readonly class="form-control" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-form-label col-sm-2"></label>
+      <div class="col-sm-10">
+        <input type="submit" value="Save" class="btn btn-default btn-success"/>
+        <a class="btn btn-outline-dark cancel" href="/<%= page %>/<%= model.PHONE_NUMBER %>">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<%- include("_footer") -%>

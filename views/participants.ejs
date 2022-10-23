@@ -1,0 +1,48 @@
+<%- include('partials/_header.ejs') %>
+
+    <form action="/players" method="post">
+        <div class="input-group mb-3 do-not-print">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">
+            <i class="material-icons mdc-button__icon">search</i>
+            </span>
+        </div>
+        <input type="text" id="search-entry" autofocus class="form-control" name="search" value="" placeholder="participant's name or phone number" aria-label="Search" aria-describedby="basic-addon1" />
+        <button type="submit" id="search-button" style="visibility: hidden;"/></button>
+        </div>
+    </form>
+    <div class="table-responsive-sm">
+        <table class="table table-hover">
+        <thead>
+            <tr>
+            <th>Name <input id="n_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Phone Number <input id="pn_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Email <input id="e_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Points <input id="p_sort_id" type="image" src="/images/sort.png" title="sort by participant name"></th>
+
+            <th class="d-print-none">
+                <a class="btn btn-sm btn-success" href="/add_participant" title="Add a new participant">Add Participant</a>
+            </th>
+            </tr>
+        </thead>
+        <tbody>
+            <% for (const participant of model) { %>
+            <tr>
+                <td><%= participant.NAME %></td>
+                <td><%= participant.PHONE_NUMBER %></td>
+                <td><%= participant.EMAIL %></td>
+                <td><%= participant.POINTS %></td>
+                <td class="d-print-none">
+                  <a class="btn btn-sm btn-warning" href="/edit_participant/<%= participant.PHONE_NUMBER %>">Edit</a>
+                  <a class="btn btn-sm btn-danger" href="/remove_participant/<%= participant.PHONE_NUMBER %>">Delete</a>
+                </td>
+              </tr>
+            <% } %>
+        </tbody>
+        </table>
+        
+        <a class="backButton pointer float-right do-not-print" href="/participants"><div class="leftChevron do-not-print"></div></a>
+
+    </div>
+
+<%- include('partials/_footer.ejs') %>

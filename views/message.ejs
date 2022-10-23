@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>EIC Wheel Spins Message</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <span class="navbar-brand"><%= message.title %></span>
+        </nav>
+        <p>
+            <%= message.content %>
+        </p>
+        <a class="backButton pointer" href="<%= message.link %>"><div class="leftChevron"></div></a>
+</body>
+</html>

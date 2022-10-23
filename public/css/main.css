@@ -1,0 +1,61 @@
+.backButton {
+    background: #f8f9fa;
+    color: #4a1819;
+    width: 4rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.backButton:hover {
+    background-color: #eff2f5;
+}
+
+.backButton.pointer {
+    cursor: pointer;
+}
+
+.leftChevron {
+    content: ' ';
+    display: inline-block;
+    border-bottom: 3px solid #4a1819;
+    border-right: 3px solid #4a1819;
+    height: 24px;
+    width: 24px;
+    margin-left: 9px;
+    transform: rotate(135deg);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+tr:nth-child(even) {background-color: #f8f9fa;}
+
+@media print 
+{
+    div.do-not-print {display: none;}
+    p.do-not-print {display: none;}
+    a.do-not-print {display: none;}
+    span.do-not-print {display: none;}
+    input.do-not-print {display: none;}
+}
+
+.vl {
+    border-left: 1px solid #AAA;
+    height: 32px;
+    margin-left: 3px;
+    margin-right: 3px;
+  }
+
+.top-menu-icon {
+    height: 32px; 
+    width: 32px;
+}
+
+.top-menu-icon:hover {
+    background-color: #EEE;
+}
