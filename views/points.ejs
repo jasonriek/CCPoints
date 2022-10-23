@@ -1,0 +1,44 @@
+<%- include('partials/_header.ejs') %>
+
+    <hr />
+        <% if(page === "points") { %>
+        <h1>Points - <%= name %> (<%= phone_number %>)</h1>
+        <% } else { %>
+        <h1>Points Redeemed - <%= name %> (<%= phone_number %>)</h1>
+        <% } %>
+    <div class="table-responsive-sm">
+        <table class="table table-hover">
+        <thead>
+            <tr>
+            <th>Points <input id="p-<%= p_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Time Entered<input id="t-<%= t_sort_id %>" type="image" src="/images/sort.png" title="sort time entered"></th>
+            <th>  
+                <a class="btn btn-sm btn-success" href="/add_points/<%= phone_number %>" title="add points"><img src="/images/add.png"></a>
+                <a class="btn btn-sm btn-warning" href="/redeem_points/<%= phone_number %>" title="redeem points"><img src="/images/ticket.png"></a>
+            </th>
+            </tr>
+        </thead>
+        <tbody>
+            <% for (const points_data of model) { %>
+            <tr>
+                <td><%= points_data.POINTS %></td>
+                <td><%= moment(points_data.TIME_ENTERED).format('hh:mm a MMM DD YYYY') %></td>
+                <td class="d-print-none">
+                  <a href="/edit_points/<%= points_data.id %>"><img src="/images/edit.png" title="edit"></a>
+                  <a href="/remove_points/<%= points_data.id %>"><img src="/images/x.png" title="remove"></a>
+                </td>
+              </tr>
+            <% } %>
+        </tbody>
+        </table>
+        
+        <a class="backButton pointer float-right do-not-print" href="/participants"><div class="leftChevron do-not-print"></div></a>
+    </div>
+
+    <form action="/points_desc" method="post">
+        <button type="submit" id="p-desc-button" style="visibility: hidden;"/></button>
+    </form>
+    <form action="/points_asc" method="post">
+        <button type="submit" id="p-asc-button" style="visibility: hidden;"/></button>
+    </form>
+<%- include('partials/_footer.ejs') %>

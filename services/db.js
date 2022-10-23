@@ -1,4 +1,5 @@
 const sqlite3 = require("sqlite3").verbose();
+const { open } = require("sqlite");
 const path = require('path');
 const moment = require('moment');
 const utils = require('./utils');
@@ -6,6 +7,9 @@ const db_path = path.join(__dirname, 'ccp.db')
 const PARTICIPANTS_TABLE = 'PARTICIPANTS';
 const POINTS_TABLE = 'CC_POINTS';
 const REDEMPTIONS_TABLE = 'REDEMPTIONS';
+
+// $$$ GLOBALS $$$
+let point_changes_global = false;
 
 function directToCorrectPointsPage(table_name)
 {
@@ -30,7 +34,7 @@ const db = new sqlite3.Database(db_path, err => {
 // Participants TABLE SQL
 const create_Participants_table_SQL = `CREATE TABLE IF NOT EXISTS ${PARTICIPANTS_TABLE} (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    NAME TEXT NOT NULL UNIQUE,
+    NAME TEXT NOT NULL,
     PHONE_NUMBER INTEGER NOT NULL UNIQUE,
     EMAIL TEXT,
     POINTS REAL NOT NULL,
@@ -41,7 +45,7 @@ const create_Participants_table_SQL = `CREATE TABLE IF NOT EXISTS ${PARTICIPANTS
 // POINTS TABLE SQL
 const create_points_table_SQL = `CREATE TABLE IF NOT EXISTS ${POINTS_TABLE} (
     id INTEGER PRIMARY KEY,
-    POINTS REAL NOT NULL UNIQUE,
+    POINTS REAL NOT NULL,
     TIME_ENTERED DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PHONE_NUMBER INTEGER NOT NULL,
     FOREIGN KEY (PHONE_NUMBER)
@@ -51,7 +55,7 @@ const create_points_table_SQL = `CREATE TABLE IF NOT EXISTS ${POINTS_TABLE} (
 // REDEMPTIONS TABLE
 const create_redemptions_table_SQL = `CREATE TABLE IF NOT EXISTS ${REDEMPTIONS_TABLE} (
     id INTEGER PRIMARY KEY,
-    POINTS REAL NOT NULL UNIQUE,
+    POINTS REAL NOT NULL,
     TIME_ENTERED DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PHONE_NUMBER INTEGER NOT NULL,
     FOREIGN KEY (PHONE_NUMBER)
@@ -94,19 +98,85 @@ function insertParticipant(name, phone_number, email, points) {
     });
 }
 
-// Get all of the active participants
-function getParticipants(res) {
-    const sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE ACTIVE = 1 ORDER BY NAME`;
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            return console.log(err.message);
-        }
-        res.render('participants', {model: rows, search: false, n_sort_id: "desc", pn_sort_id: "desc", e_sort_id: "desc", p_sort_id: "desc"});
+function connectToDatabase(path)
+{
+    return open({
+        filename: path,
+        driver: sqlite3.Database
     });
 }
 
+async function updateParticipantPoints(phone_number)
+{
+    try 
+    {
+        let points = 0;
+        let redemption_points = 0;
+        let total_points = 0;
+
+        // GET POINTS TOTAL
+        let sql = `SELECT SUM(POINTS) AS n FROM ${POINTS_TABLE} WHERE PHONE_NUMBER = ?`;
+        const database = await connectToDatabase(db_path);
+        let row = await database.get(sql, phone_number);
+        if(row && row.n)
+            points = row.n;
+        //console.log(`points: ${points}`);
+        // GET REDEMPTION TOTAL
+        sql = `SELECT SUM(POINTS) AS n FROM ${REDEMPTIONS_TABLE} WHERE PHONE_NUMBER = ?`;
+        row = await database.get(sql, phone_number);
+        if(row && row.n)
+            redemption_points = row.n;
+        //console.log(`redeemed points: ${redemption_points}`)
+        // UPDATE POINTS TOTALS
+        total_points = points - redemption_points;
+        sql = `UPDATE ${PARTICIPANTS_TABLE} SET POINTS = ? WHERE PHONE_NUMBER = ?`;
+        await database.run(sql, [total_points, phone_number]);
+    }
+    catch(error)
+    {
+        console.log(error.message);
+    }
+}
+
+async function checkAndUpdateAllParticipantPoints()
+{
+    try 
+    {
+        const database = await connectToDatabase(db_path);
+        const sql = `SELECT PHONE_NUMBER FROM ${PARTICIPANTS_TABLE}`;
+        const rows = await database.all(sql, []);
+        for(let row of rows)
+            await updateParticipantPoints(row.PHONE_NUMBER);
+    }
+    catch (error)
+    {
+        console.log(error);
+    }
+}
+
+// Get all of the active participants
+async function getParticipants(res) {
+    try 
+    {
+        const database = await connectToDatabase(db_path);
+        const sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE ACTIVE = 1 ORDER BY NAME`;
+        if(point_changes_global) {
+            await checkAndUpdateAllParticipantPoints();
+            point_changes_global = false;
+            console.log("Changes made...");
+        }
+        const rows = await database.all(sql, []);
+        res.render('participants', {model: rows, search: false, n_sort_id: "desc", pn_sort_id: "desc", e_sort_id: "desc", p_sort_id: "desc", last_search: ""});
+    }
+    catch (error)
+    {
+        console.log(error);
+    }
+}
+
+
 // Create an ordered render for particpants
-function participantOrderRender(res, rows, order, order_by)
+function participantOrderRender(res, rows, order, order_by, last_search)
 {
     let order_id = utils.inverseSortOrder(order.toLowerCase());
     let n_sort_id = "desc";
@@ -129,68 +199,91 @@ function participantOrderRender(res, rows, order, order_by)
             p_sort_id = order_id;
             break;
     }
-    res.render('participants', {model: rows, search: false, n_sort_id: n_sort_id,  pn_sort_id: pn_sort_id, e_sort_id: e_sort_id, p_sort_id: p_sort_id});
+    res.render('participants', {model: rows, search: false, n_sort_id: n_sort_id,  pn_sort_id: pn_sort_id, e_sort_id: e_sort_id, p_sort_id: p_sort_id, last_search: last_search});
 }
 
 // Get the participants by some kind of order
-function getParticipantsByOrder(res, order_by, desc=true)
+function getParticipantsByOrder(req, res, order_by, desc=true)
 {
+    let participant = '';
+    let values = [];
     let order = 'ASC';
+    let last_search = '';
     if(desc)
         order = 'DESC';
     let sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE ACTIVE = 1 ORDER BY ${order_by} ${order}`;
-    db.all(sql, [], (err, rows) => {
+    if(Object.values(req.query).length && req.query.h)
+    {
+        sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE (INSTR(LOWER(NAME), LOWER(?)) > 0 OR INSTR(PHONE_NUMBER, ?) > 0) AND ACTIVE = 1 ORDER BY ${order_by} ${order}`;
+        participant = utils.strip(req.query.h);
+        if(!utils.containsAnyLetters(participant))
+            participant = participant.replace(/[^0-9]/g, '');
+        last_search = participant;
+        values  = [participant, participant];
+    }
+    db.all(sql, values, (err, rows) => {
         if (err) {
                 return console.log(err.message);
         }
-        participantOrderRender(res, rows, order, order_by);
+        participantOrderRender(res, rows, order, order_by, last_search);
     });
 }
 
 // Get all of the active participants in descending order by player name
-function getParticipantsByNameDesc(res) {
-    getParticipantsByOrder(res, "NAME", true);
+function getParticipantsByNameDesc(req, res) {
+    getParticipantsByOrder(req, res, "NAME", true);
 }
 
 // Get all of the active participants in asscending order by player name
-function getParticipantsByNameAsc(res) {
-    getParticipantsByOrder(res, "NAME", false);
+function getParticipantsByNameAsc(req, res) {
+    getParticipantsByOrder(req, res, "NAME", false);
 }
 
 // Get all of the active participants in descending order by player id
-function getParticipantsByPhoneNumberDesc(res) {
-    getParticipantsByOrder(res, "PHONE_NUMBER", true);
+function getParticipantsByPhoneNumberDesc(req, res) {
+    getParticipantsByOrder(req, res, "PHONE_NUMBER", true);
 }
 
 // Get all of the active participants in ascending order by player id
-function getParticipantsByPhoneNumberAsc(res) {
-    getParticipantsByOrder(res, "PHONE_NUMBER", false);
+function getParticipantsByPhoneNumberAsc(req, res) {
+    getParticipantsByOrder(req, res, "PHONE_NUMBER", false);
 }
 
 // Get all of the active participants in descending order by email
-function getParticipantsByEmailDesc(res) {
-    getParticipantsByOrder(res, "EMAIL", true);
+function getParticipantsByEmailDesc(req, res) {
+    getParticipantsByOrder(req, res, "EMAIL", true);
 }
 
 // Get all of the active participants in ascending order by email
-function getParticipantsByEmailAsc(res) {
-    getParticipantsByOrder(res, "EMAIL", false);
+function getParticipantsByEmailAsc(req, res) {
+    getParticipantsByOrder(req, res, "EMAIL", false);
 }
 
 // Get all of the active participants in descending order by points
-function getParticipantsByPointsDesc(res) {
-    getParticipantsByOrder(res, "POINTS", true);
+function getParticipantsByPointsDesc(req, res) {
+    getParticipantsByOrder(req, res, "POINTS", true);
 }
 
 // Get all of the active participants in ascending order by points
-function getParticipantsByPointsAsc(res) {
-    getParticipantsByOrder(res, "POINTS", false);
+function getParticipantsByPointsAsc(req, res) {
+    getParticipantsByOrder(req, res, "POINTS", false);
 }
 
 // Search Participants
 function searchParticipants(req, res)
 {
-    let participant = utils.strip(req.body.search);
+    let participant = '';
+    if(Object.values(req.query).length === 0)
+    {
+        res.redirect('/participants'); // empty
+        return;
+    }
+        
+    //let participant = utils.strip(req.params.search);
+    participant = utils.strip(req.query.result);
+    if(!utils.containsAnyLetters(participant))
+        participant = participant.replace(/[^0-9]/g, '');
+    
     let sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE (INSTR(LOWER(NAME), LOWER(?)) > 0 OR INSTR(PHONE_NUMBER, ?) > 0) AND ACTIVE = 1;`;
     // OR INSTR(PHONE_NUMBER, "?") > 0;
     if(participant.length)
@@ -199,7 +292,7 @@ function searchParticipants(req, res)
             if(err) {
                 return console.log(err.message);
             }
-            res.render('participants', {model: rows, search: true, n_sort_id: "desc", pn_sort_id: "desc", e_sort_id: "desc", p_sort_id: "desc"});
+            res.render('participants', {model: rows, search: true, n_sort_id: "desc", pn_sort_id: "desc", e_sort_id: "desc", p_sort_id: "desc", last_search: participant});
         });
     }
     else
@@ -242,10 +335,10 @@ function addParticipantForm(req, res) {
 
 // Add new participant
 function addParticipant(req, res) {
-    const name = req.body.NAME.toUpperCase();
-    const phone_number = req.body.PHONE_NUMBER;
-    const points = req.body.POINTS;
-    const email = req.body.EMAIL;
+    const name = utils.strip(req.body.NAME.toUpperCase());
+    const phone_number = req.body.PHONE_NUMBER.replace(/[^0-9]/g, '');
+    const points = req.body.POINTS.replace(/[^0-9]/g, '');
+    const email = utils.strip(req.body.EMAIL);
     const sql = `SELECT NAME FROM ${PARTICIPANTS_TABLE} WHERE NAME = ? OR PHONE_NUMBER = ?`;
     db.get(sql, [name, phone_number], (err, row) => {
         if(err) {
@@ -323,7 +416,6 @@ function removeParticipantForm(req, res) {
         if(err) {
             return console.log(err.message);
         }
-        console.log(phone_number);
         res.render('remove_participant', {model: row});
     });
 }
@@ -368,17 +460,19 @@ function insertPoints(table_name, points, phone_number) {
     });
 }
 
-function getPoints(table_name, phone_number)
+function getPointsForm(table_name, req, res)
 {
-    let points = 0;
-    const sql = `SELECT POINTS FROM ${table_name} WHERE PHONE_NUMBER = ?`
-    db.all(sql, phone_number, (err, rows) => {
-        if(err) {
-            console.log(err.message);
-        }
-        rows.forEach(row => {points += row.POINTS});
+    const phone_number = req.params.PHONE_NUMBER;
+    let page_type = directToCorrectPointsPage(table_name);
+    let sql = `SELECT NAME FROM ${PARTICIPANTS_TABLE} WHERE PHONE_NUMBER = ?`;
+    db.get(sql, phone_number, (err, row) =>{
+        if(err){return console.log(err.message);}
+        sql = `SELECT POINTS FROM ${table_name} WHERE PHONE_NUMBER = ?`
+        db.all(sql, phone_number, (err, rows) => {
+            if(err) {return console.log(err.message);}
+            res.render('points', {model: rows, name: row.NAME, phone_number: phone_number, page: page_type, p_sort_id: 'desc', t_sort_id: 'desc', moment: moment});
+        });
     });
-    return points;
 }
 
 function updatPointsEntry(table_name, points, id)
@@ -391,18 +485,6 @@ function updatPointsEntry(table_name, points, id)
     });
 }
 
-function updateParticipantPoints(phone_number)
-{
-    let points = getPoints(POINTS_TABLE, phone_number);
-    let redemption_points = getPoints(REDEMPTIONS_TABLE, phone_number);
-    let total_points = points - redemption_points;
-    const sql = `UPDATE ${PARTICIPANTS_TABLE} SET POINTS = ? WHERE PHONE_NUMBER = ?`;
-    db.run(sql, [total_points, phone_number], err => {
-        if(err) {
-            console.log(err.message);
-        }
-    });
-}
 
 /*
 function getWheelSpinsByPhoneNumber(req, res) {
@@ -451,7 +533,7 @@ function handlePoints(table_name, req, res) {
     const phone_number = req.body.PHONE_NUMBER;
     const points = req.body.POINTS;
     insertPoints(table_name, points, phone_number);
-    updateParticipantPoints(phone_number);
+    point_changes_global = true;
     res.redirect(`/${directToCorrectPointsPage(table_name)}/${phone_number}`);  
 }
 
@@ -498,7 +580,6 @@ function deletePointsForm(table_name, req, res) {
         if(err) {
             return console.log(err.message);
         }
-        console.log(`count: ${row_2.length}`);
         res.render('remove_points', {model: row_1, count: row_2.length, moment: moment});
         });
     });
@@ -516,7 +597,7 @@ function removePoints(table_name, req, res) {
             if(err) {
                 return console.log(err.message);
             }
-            updateParticipantPoints(phone_number);
+            point_changes_global = true;
             res.redirect(`/${directToCorrectPointsPage(table_name)}/${phone_number}`);
         });
     }
@@ -563,9 +644,13 @@ function deactivateParticipants()
 
 module.exports = {
     table_creation_SQL,
+    POINTS_TABLE,
+    REDEMPTIONS_TABLE,
+    PARTICIPANTS_TABLE,
     createTable,
     createTables,
     getParticipants,
+    searchParticipants,
     addParticipantForm,
     addParticipant,
     editParticipantForm,
@@ -580,4 +665,7 @@ module.exports = {
     getParticipantsByEmailAsc,
     getParticipantsByPointsDesc,
     getParticipantsByPointsAsc,
+    handlePointsForm,
+    handlePoints,
+    getPointsForm,
 }

@@ -1,11 +1,11 @@
-<%- include("_header") -%>
-
-<% if (page === "points") { %>
+<%- include("partials/_header") -%>
+<hr />
+<% if(page === "points") { %>
   <h1>Add Points - (<%= model.NAME %>)</h1>
-<% } %>
-<% else { %>
+<% } else { %>
   <h1>Redeem Points - (<%= model.NAME %>)</h1>
 <% } %>
+<hr />
 <form action="/add_points/<%= model.PHONE_NUMBER %>" method="post">
   <div class="form-horizontal">
 
@@ -33,4 +33,4 @@
   </div>
 </form>
 
-<%- include("_footer") -%>
+<%- include("partials/_footer") -%>

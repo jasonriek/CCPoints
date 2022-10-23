@@ -1,9 +1,13 @@
 let print_button = document.getElementById('print-button');
 let download_report_button = document.getElementById('download-report-button');
 
+function strip(string) {
+    return string.replace(/^\s+|\s+$/g, '');
+}
+
 // Sorting Buttons
 
-let sorting_columns_ids = ['n', 'pn', 'e', 'p'];
+let sorting_columns_ids = ['n', 'pn', 'p'];
 let sorting_colums = {};
 for(let column of sorting_columns_ids)
 {

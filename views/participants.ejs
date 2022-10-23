@@ -1,24 +1,23 @@
 <%- include('partials/_header.ejs') %>
 
-    <form action="/players" method="post">
+    <form action="/participants/search" method="get" id="search-form">
         <div class="input-group mb-3 do-not-print">
         <div class="input-group-prepend">
             <span class="input-group-text" id="basic-addon1">
             <i class="material-icons mdc-button__icon">search</i>
             </span>
         </div>
-        <input type="text" id="search-entry" autofocus class="form-control" name="search" value="" placeholder="participant's name or phone number" aria-label="Search" aria-describedby="basic-addon1" />
+        <input type="text" id="search-entry" autofocus class="form-control" name="result" value="<%= last_search %>" placeholder="participant's name or phone number" aria-label="Search" aria-describedby="basic-addon1" />
         <button type="submit" id="search-button" style="visibility: hidden;"/></button>
         </div>
     </form>
     <div class="table-responsive-sm">
         <table class="table table-hover">
         <thead>
-            <tr>
-            <th>Name <input id="n-<%= n_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
-            <th>Phone Number <input id="pn-<%= pn_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
-            <th>Email <input id="e-<%= e_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
-            <th>Points <input id="p-<%= p_sort_id %>" type="image" src="/images/sort.png" title="sort by participant name"></th>
+          <tr>
+            <th>Phone Number <input id="pn-<%= pn_sort_id %>" name="sort" type="image" src="/images/sort.png" title="sort by phone number"></th>
+            <th>Name <input id="n-<%= n_sort_id %>" name="sort" type="image" src="/images/sort.png" title="sort by participant name"></th>
+            <th>Points <input id="p-<%= p_sort_id %>" name="sort" type="image" src="/images/sort.png" title="sort by points"></th>
 
             <th class="d-print-none">
                 <a class="btn btn-sm btn-success" href="/add_participant" title="Add a new participant">Add Participant</a>
@@ -27,14 +26,15 @@
         </thead>
         <tbody>
             <% for (const participant of model) { %>
-            <tr>
-                <td><%= participant.NAME %></td>
+            <tr onclick="window.location=`/points/<%= participant.PHONE_NUMBER %>`" style="cursor: pointer;">
                 <td><%= participant.PHONE_NUMBER %></td>
-                <td><%= participant.EMAIL %></td>
-                <td><%= participant.POINTS %></td>
+                <td><%= participant.NAME %></td>
+                <td>
+                    <b class="float-left">&nbsp;<%= participant.POINTS %></b>
+                </td>
                 <td class="d-print-none">
-                  <a class="btn btn-sm btn-warning" href="/edit_participant/<%= participant.PHONE_NUMBER %>">Edit</a>
-                  <a class="btn btn-sm btn-danger" href="/remove_participant/<%= participant.PHONE_NUMBER %>">Delete</a>
+                  <a href="/edit_participant/<%= participant.PHONE_NUMBER %>"><img src="/images/edit.png" title="edit"></a>
+                  <a href="/remove_participant/<%= participant.PHONE_NUMBER %>"><img src="/images/x.png" title="remove"></a>
                 </td>
               </tr>
             <% } %>
@@ -46,28 +46,28 @@
     </div>
 
 
-    <form action="/participants_name_desc" method="post">
+    <form action="/participants_name_desc" method="get">
         <button type="submit" id="n-desc-button" style="visibility: hidden;"/></button>
+        <input type="hidden" value="" name="h">
       </form>
-      <form action="/participants_name_asc" method="post">
+      <form action="/participants_name_asc" method="get">
         <button type="submit" id="n-asc-button" style="visibility: hidden;"/></button>
+        <input type="hidden" value="" name="h">
       </form>
-      <form action="/participants_phone_number_desc" method="post">
+      <form action="/participants_phone_number_desc" method="get">
         <button type="submit" id="pn-desc-button" style="visibility: hidden;"/></button>
+        <input type="hidden" value="" name="h">
       </form>
-      <form action="/participants_phone_number_asc" method="post">
+      <form action="/participants_phone_number_asc" method="get">
         <button type="submit" id="pn-asc-button" style="visibility: hidden;"/></button>
+        <input type="hidden" value="" name="h">
       </form>
-      <form action="/participants_email_desc" method="post">
-        <button type="submit" id="e-desc-button" style="visibility: hidden;"/></button>
-      </form>
-      <form action="/participants_email_asc" method="post">
-        <button type="submit" id="e-asc-button" style="visibility: hidden;"/></button>
-      </form>
-      <form action="/participants_points_desc" method="post">
+      <form action="/participants_points_desc" method="get">
         <button type="submit" id="p-desc-button" style="visibility: hidden;"/></button>
+        <input type="hidden" value="" name="h">
       </form>
-      <form action="/participants_points_asc" method="post">
+      <form action="/participants_points_asc" method="get">
         <button type="submit" id="p-asc-button" style="visibility: hidden;"/></button>
+        <input type="hidden" value="" name="h">
       </form>
 <%- include('partials/_footer.ejs') %>

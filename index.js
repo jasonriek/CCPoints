@@ -20,6 +20,10 @@ app.get('/participants', (req, res) => {
     db.getParticipants(res);
 });
 
+app.get('/participants/search', (req, res) => {
+    db.searchParticipants(req, res);
+});
+
 // Add participant
 app.get('/add_participant', (req, res) => {
     db.addParticipantForm(req, res);
@@ -52,75 +56,47 @@ app.post('/remove_participant', (req, res) => {
 // NAME SORT
 // #############################################################
 app.get('/participants_name_desc', (req, res) => {
-    db.getParticipantsByNameDesc(res);
-});
-
-app.post('/participants_name_desc', (req, res) => {
-    db.getParticipantsByNameDesc(res);
+    db.getParticipantsByNameDesc(req, res);
 });
 
 app.get('/participants_name_asc', (req, res) => {
-    db.getParticipantsByNameAsc(res);
-});
-
-app.post('/participants_name_asc', (req, res) => {
-    db.getParticipantsByNameAsc(res);
+    db.getParticipantsByNameAsc(req, res);
 });
 
 // PHONE_NUMBER SORT
 // #############################################################
 app.get('/participants_phone_number_desc', (req, res) => {
-    db.getParticipantsByPhoneNumberDesc(res);
-});
-
-app.post('/participants_phone_number_desc', (req, res) => {
-    db.getParticipantsByPhoneNumberDesc(res);
+    db.getParticipantsByPhoneNumberDesc(req, res);
 });
 
 app.get('/participants_phone_number_asc', (req, res) => {
-    db.getParticipantsByPhoneNumberAsc(res);
-});
-
-app.post('/participants_phone_number_asc', (req, res) => {
-    db.getParticipantsByPhoneNumberAsc(res);
-});
-
-// EMAIL SORT
-// #############################################################
-app.get('/participants_email_desc', (req, res) => {
-    db.getParticipantsByEmailDesc(res);
-});
-
-app.post('/participants_email_desc', (req, res) => {
-    db.getParticipantsByEmailDesc(res);
-});
-
-app.get('/participants_email_asc', (req, res) => {
-    db.getParticipantsByEmailAsc(res);
-});
-
-app.post('/participants_email_asc', (req, res) => {
-    db.getParticipantsByEmailAsc(res);
+    db.getParticipantsByPhoneNumberAsc(req, res);
 });
 
 // POINTS SORT
 // #############################################################
 app.get('/participants_points_desc', (req, res) => {
-    db.getParticipantsByPointsDesc(res);
-});
-
-app.post('/participants_points_desc', (req, res) => {
-    db.getParticipantsByPointsDesc(res);
+    db.getParticipantsByPointsDesc(req, res);
 });
 
 app.get('/participants_points_asc', (req, res) => {
-    db.getParticipantsByPointsAsc(res);
-});
-
-app.post('/participants_points_asc', (req, res) => {
-    db.getParticipantsByPointsAsc(res);
+    db.getParticipantsByPointsAsc(req, res);
 });
 // #############################################################
+
+// POINTS
+app.get('/points/:PHONE_NUMBER', (req, res) => {
+    db.getPointsForm(db.POINTS_TABLE, req, res);
+});
+
+// Add Points
+app.get('/add_points/:PHONE_NUMBER', (req, res) => {
+    db.handlePointsForm(db.POINTS_TABLE, req, res);
+});
+
+app.post('/add_points/:PHONE_NUMBER', (req, res) => {
+    db.handlePoints(db.POINTS_TABLE, req, res);
+});
 
 
 app.listen(port, () => {
