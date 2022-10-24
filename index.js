@@ -86,7 +86,7 @@ app.get('/participants_points_asc', (req, res) => {
 
 // POINTS
 app.get('/points/:PHONE_NUMBER', (req, res) => {
-    db.getPointsForm(db.POINTS_TABLE, req, res);
+    db.getPointsForm(req, res);
 });
 
 // Add Points
@@ -96,6 +96,15 @@ app.get('/add_points/:PHONE_NUMBER', (req, res) => {
 
 app.post('/add_points/:PHONE_NUMBER', (req, res) => {
     db.handlePoints(db.POINTS_TABLE, req, res);
+});
+
+// Redeem Points 
+app.get('/redeem_points/:PHONE_NUMBER', (req, res) => {
+    db.handlePointsForm(db.REDEMPTIONS_TABLE, req, res);
+});
+
+app.post('/redeem_points/:PHONE_NUMBER', (req, res) => {
+    db.handlePoints(db.REDEMPTIONS_TABLE, req, res);
 });
 
 

@@ -1,7 +1,8 @@
 const sqlite3 = require("sqlite3").verbose();
 const { open } = require("sqlite");
 const path = require('path');
-const moment = require('moment');
+const { format } = require('date-fns-tz');
+const { parseISO } = require('date-fns');
 const utils = require('./utils');
 const db_path = path.join(__dirname, 'ccp.db')
 const PARTICIPANTS_TABLE = 'PARTICIPANTS';
@@ -9,7 +10,7 @@ const POINTS_TABLE = 'CC_POINTS';
 const REDEMPTIONS_TABLE = 'REDEMPTIONS';
 
 // $$$ GLOBALS $$$
-let point_changes_global = false;
+// let point_changes_global = false;
 
 function directToCorrectPointsPage(table_name)
 {
@@ -39,7 +40,7 @@ const create_Participants_table_SQL = `CREATE TABLE IF NOT EXISTS ${PARTICIPANTS
     EMAIL TEXT,
     POINTS REAL NOT NULL,
     ACTIVE INTEGER NOT NULL,
-    DATE_CREATED DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
+    TIME_ENTERED DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
 );`;
 
 // POINTS TABLE SQL
@@ -88,9 +89,9 @@ function createTables(tables) {
 }
 
 // Insert a new participant into the system
-function insertParticipant(name, phone_number, email, points) {
+function insertParticipant(name, phone_number, email) {
     db.run(`INSERT INTO ${PARTICIPANTS_TABLE} (NAME, PHONE_NUMBER, EMAIL, POINTS, ACTIVE) 
-            VALUES (?,?,?,?, ?);`, [name, phone_number, email, points, 1], function(err){
+            VALUES (?,?,?,?,?);`, [name, phone_number, email, 0, 1], function(err){
                 if(err)
                 {
                     console.log(err.message);
@@ -160,11 +161,11 @@ async function getParticipants(res) {
     {
         const database = await connectToDatabase(db_path);
         const sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE ACTIVE = 1 ORDER BY NAME`;
-        if(point_changes_global) {
+        /*if(point_changes_global) {
             await checkAndUpdateAllParticipantPoints();
             point_changes_global = false;
             console.log("Changes made...");
-        }
+        }*/
         const rows = await database.all(sql, []);
         res.render('participants', {model: rows, search: false, n_sort_id: "desc", pn_sort_id: "desc", e_sort_id: "desc", p_sort_id: "desc", last_search: ""});
     }
@@ -337,7 +338,7 @@ function addParticipantForm(req, res) {
 function addParticipant(req, res) {
     const name = utils.strip(req.body.NAME.toUpperCase());
     const phone_number = req.body.PHONE_NUMBER.replace(/[^0-9]/g, '');
-    const points = req.body.POINTS.replace(/[^0-9]/g, '');
+    //const points = req.body.POINTS.replace(/[^0-9]/g, '');
     const email = utils.strip(req.body.EMAIL);
     const sql = `SELECT NAME FROM ${PARTICIPANTS_TABLE} WHERE NAME = ? OR PHONE_NUMBER = ?`;
     db.get(sql, [name, phone_number], (err, row) => {
@@ -348,9 +349,8 @@ function addParticipant(req, res) {
             setParticipantToActive(phone_number);
         }
         else {
-            insertParticipant(name, phone_number, email, points);
+            insertParticipant(name, phone_number, email);
         }
-        insertPoints(POINTS_TABLE, points, phone_number);
         res.redirect('/participants');
     });
 }
@@ -451,64 +451,37 @@ function removeParticipantByPhoneNumber(req, res) {
 
 // Insert a new points for a player
 function insertPoints(table_name, points, phone_number) {
-    const current_time = new Date();
-    db.run(`INSERT INTO ${table_name} (POINTS, PHONE_NUMBER, TIME_ENTERED) 
-    VALUES (?,?,?);`, [points, phone_number, current_time], function(err){
+    db.run(`INSERT INTO ${table_name} (POINTS, PHONE_NUMBER) 
+    VALUES (?,?);`, [points, phone_number], function(err){
         if(err) {
             return console.log(err.message);
         }
     });
 }
 
-function getPointsForm(table_name, req, res)
+function getPointsForm(req, res)
 {
     const phone_number = req.params.PHONE_NUMBER;
-    let page_type = directToCorrectPointsPage(table_name);
-    let sql = `SELECT NAME FROM ${PARTICIPANTS_TABLE} WHERE PHONE_NUMBER = ?`;
+    let sql = `SELECT NAME, POINTS FROM ${PARTICIPANTS_TABLE} WHERE PHONE_NUMBER = ?`;
     db.get(sql, phone_number, (err, row) =>{
         if(err){return console.log(err.message);}
-        sql = `SELECT POINTS FROM ${table_name} WHERE PHONE_NUMBER = ?`
-        db.all(sql, phone_number, (err, rows) => {
+        sql = `SELECT POINTS, datetime(TIME_ENTERED, 'localtime') as TE FROM ${POINTS_TABLE} WHERE PHONE_NUMBER = ?`;
+        db.all(sql, phone_number, (err, points_rows) => {
             if(err) {return console.log(err.message);}
-            res.render('points', {model: rows, name: row.NAME, phone_number: phone_number, page: page_type, p_sort_id: 'desc', t_sort_id: 'desc', moment: moment});
+            sql = `SELECT POINTS, datetime(TIME_ENTERED, 'localtime') as TE FROM ${REDEMPTIONS_TABLE} WHERE PHONE_NUMBER = ?`;
+            db.all(sql, phone_number, (err, redeem_rows) =>{
+                if(err) {return console.log(err.message);}
+                res.render('points', {points_model: points_rows, redeem_model: redeem_rows, name: row.NAME, points: row.POINTS, phone_number: phone_number, p_sort_id: 'desc', t_sort_id: 'desc', format: format, parseISO: parseISO});
+            });
         });
     });
 }
-
-function updatPointsEntry(table_name, points, id)
-{
-    const sql = `UPDATE ${table_name} SET POINTS = ? WHERE id = ?`;
-    db.run(sql, [points, id], err => {
-        if(err) {
-            console.log(err.message);
-        }
-    });
-}
-
-
-/*
-function getWheelSpinsByPhoneNumber(req, res) {
-    const id = req.params.PHONE_NUMBER;
-    const sql = `SELECT WHEEL_SPINS.id, WHEEL_SPINS.WHEEL_SPIN_NUMBER, WHEEL_SPINS.TIME_ENTERED, Participants.PLAYER_NAME, Participants.PHONE_NUMBER 
-    FROM WHEEL_SPINS
-    JOIN Participants ON WHEEL_SPINS.PHONE_NUMBER = Participants.PHONE_NUMBER
-    WHERE WHEEL_SPINS.PHONE_NUMBER = ?`;
-    db.all(sql, id, (err, row) => {
-        if(err) {
-            return console.log(err.message);
-        }
-        res.render('wheel_spins', {model: row, moment: moment});
-    });
-}
-*/
 
 // Handles points for the main points form and the redeem points form
 function handlePointsForm(table_name, req, res) 
 {
     const phone_number = req.params.PHONE_NUMBER;
-    let page_type = 'points';
-    if(table_name === REDEMPTIONS_TABLE)
-        page_type = 'redemptions';
+    let page_type = directToCorrectPointsPage(table_name);
     let sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE PHONE_NUMBER = ?`;
     db.get(sql, phone_number, (err, row_1) => 
     {
@@ -529,12 +502,13 @@ function handlePointsForm(table_name, req, res)
 }
 
 // Add or redeem points
-function handlePoints(table_name, req, res) {
+async function handlePoints(table_name, req, res) {
     const phone_number = req.body.PHONE_NUMBER;
     const points = req.body.POINTS;
     insertPoints(table_name, points, phone_number);
-    point_changes_global = true;
-    res.redirect(`/${directToCorrectPointsPage(table_name)}/${phone_number}`);  
+    //point_changes_global = true;
+    await updateParticipantPoints(phone_number);
+    res.redirect(`/points/${phone_number}`);  
 }
 
 // Update points or redemptions, form
@@ -546,7 +520,7 @@ function updatePointsForm(table_name, req, res)
         if(err) {
             return console.log(err.message);
         }
-        res.render('handle_points', {model: row, moment: moment});
+        res.render('handle_points', {model: row, format: format, parseISO: parseISO});
     });
 }
 
@@ -563,7 +537,7 @@ function updatePointsByID(table_name, req, res)
         {
             return console.log(err.message);
         }
-        res.redirect(`/${directToCorrectPointsPage(table_name)}/${phone_number}`);
+        res.redirect(`/points/${phone_number}`);
     });
 }
 
@@ -580,26 +554,24 @@ function deletePointsForm(table_name, req, res) {
         if(err) {
             return console.log(err.message);
         }
-        res.render('remove_points', {model: row_1, count: row_2.length, moment: moment});
+        res.render('remove_points', {model: row_1, count: row_2.length, format: format, parseISO: parseISO});
         });
     });
 }
 
 // Remove points
-function removePoints(table_name, req, res) {
+async function removePoints(table_name, req, res) {
     const id = req.params.id;
     const phone_number = req.body.PHONE_NUMBER;
     const total = parseInt(req.body.TOTAL);
     if(total > 1)
     {
         const sql = `DELETE FROM ${table_name} WHERE id = ?`;
-        db.run(sql, id, err => {
-            if(err) {
-                return console.log(err.message);
-            }
-            point_changes_global = true;
-            res.redirect(`/${directToCorrectPointsPage(table_name)}/${phone_number}`);
-        });
+        const database = await connectToDatabase(db_path);
+        await database.run(sql, id);
+        await updateParticipantPoints(phone_number);
+        // point_changes_global = true;
+        res.redirect(`/points/${phone_number}`);
     }
     else
     {
@@ -607,7 +579,7 @@ function removePoints(table_name, req, res) {
             message: {
             title: "Error: Cannot Delete", 
             content: "Participant must have at least one points entry.",
-            link: `/${directToCorrectPointsPage(table_name)}/${phone_number}`
+            link: `/points/${phone_number}`
         }});
     }
 }

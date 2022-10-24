@@ -6,7 +6,11 @@
   <h1>Redeem Points - (<%= model.NAME %>)</h1>
 <% } %>
 <hr />
-<form action="/add_points/<%= model.PHONE_NUMBER %>" method="post">
+<% if(page === "points") { %>
+  <form action="/add_points/<%= model.PHONE_NUMBER %>" method="post">
+<% } else { %>
+  <form action="/redeem_points/<%= model.PHONE_NUMBER %>" method="post">
+<% } %>
   <div class="form-horizontal">
 
     <div class="form-group row">
@@ -26,8 +30,12 @@
     <div class="form-group row">
       <label class="col-form-label col-sm-2"></label>
       <div class="col-sm-10">
-        <input type="submit" value="Save" class="btn btn-default btn-success"/>
-        <a class="btn btn-outline-dark cancel" href="/<%= page %>/<%= model.PHONE_NUMBER %>">Cancel</a>
+        <% if(page === "points") { %>
+          <input type="submit" value="Add" class="btn btn-default btn-success"/>
+        <% } else { %>
+          <input type="submit" value="Redeem" class="btn btn-default btn-warning"/>
+        <% } %>
+        <a class="btn btn-outline-dark cancel" href="/points/<%= model.PHONE_NUMBER %>">Cancel</a>
       </div>
     </div>
   </div>

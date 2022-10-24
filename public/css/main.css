@@ -59,3 +59,11 @@ tr:nth-child(even) {background-color: #f8f9fa;}
 .top-menu-icon:hover {
     background-color: #EEE;
 }
+
+.positive-points {
+    color: green;
+}
+
+.negative-points {
+    color:#4a1819;
+}
