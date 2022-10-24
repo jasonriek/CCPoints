@@ -6,8 +6,8 @@
         <% } else { %>
             <h1>Total Points - <span class="negative-points"><%= points %></span> (<%= name %>)
         <% } %>
-        <a class="btn btn-sm btn-success" href="/add_points/<%= phone_number %>" title="add points"><img src="/images/add.png"></a>
-        <a class="btn btn-sm btn-warning" href="/redeem_points/<%= phone_number %>" title="redeem points"><img src="/images/ticket.png"></a></h1>
+        <a class="btn btn-sm btn-success do-not-print" href="/add_points/<%= phone_number %>" title="add points"><img src="/images/add.png"></a>
+        <a class="btn btn-sm btn-warning do-not-print" href="/redeem_points/<%= phone_number %>" title="redeem points"><img src="/images/ticket.png"></a></h1>
     <hr />
     <a class="backButton pointer float-right do-not-print" href="/participants"><div class="leftChevron do-not-print"></div></a>
     <br /><h1>Redeemed</h1>
@@ -71,4 +71,4 @@
     <form action="/points_asc" method="post">
         <button type="submit" id="p-asc-button" style="visibility: hidden;"/></button>
     </form>
-<%- include('partials/_footer.ejs') %>
+<%- include("partials/_points_footer") -%>

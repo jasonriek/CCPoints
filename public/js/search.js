@@ -13,4 +13,3 @@ search_entry.addEventListener("keypress", function(event) {
 
 if(search_entry.value)
     document.getElementsByName('h').forEach(h_input => {h_input.value = search_entry.value});
-            
