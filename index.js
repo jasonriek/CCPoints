@@ -86,7 +86,7 @@ app.get('/participants_points_asc', (req, res) => {
 
 // POINTS
 app.get('/points/:PHONE_NUMBER', (req, res) => {
-    db.getPointsForm(req, res);
+    db.pointsForm(req, res);
 });
 
 // Add Points
@@ -105,6 +105,46 @@ app.get('/redeem_points/:PHONE_NUMBER', (req, res) => {
 
 app.post('/redeem_points/:PHONE_NUMBER', (req, res) => {
     db.handlePoints(db.REDEMPTIONS_TABLE, req, res);
+});
+
+// Update Point Entry Form
+app.get('/edit_point_entry/:NAME/:id', (req, res) => {
+    db.updatePointsForm(db.POINTS_TABLE, req, res);
+});
+
+// Update Point Entry
+app.post('/edit_point_entry/:id', (req, res) => {
+    db.updatePointsByID(db.POINTS_TABLE, req, res);
+});
+
+// Update Redeemed Entry Form
+app.get('/edit_redeemed_entry/:NAME/:id', (req, res) => {
+    db.updatePointsForm(db.REDEMPTIONS_TABLE, req, res);
+});
+
+// Update Redeemed Entry 
+app.post('/edit_redeemed_entry/:id', (req, res) => {
+    db.updatePointsByID(db.REDEMPTIONS_TABLE, req, res);
+});
+
+// Remove Point Entry Form
+app.get('/remove_point_entry/:NAME/:id', (req, res) => {
+    db.removePointsForm(db.POINTS_TABLE, req, res);
+});
+
+// Remove Point Entry 
+app.post('/remove_point_entry/:id', (req, res) => {
+    db.removePointsByID(db.POINTS_TABLE, req, res);
+});
+
+// Remove Redeemed Entry Form
+app.get('/remove_redeemed_entry/:NAME/:id', (req, res) => {
+    db.removePointsForm(db.REDEMPTIONS_TABLE, req, res);
+});
+
+// Remove Redeemed Entry 
+app.post('/remove_redeemed_entry/:id', (req, res) => {
+    db.removePointsByID(db.REDEMPTIONS_TABLE, req, res);
 });
 
 

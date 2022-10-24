@@ -107,6 +107,17 @@ function connectToDatabase(path)
     });
 }
 
+async function updateEntryTime(table_name, entry_id)
+{
+    try 
+    {
+        const database = await connectToDatabase(db_path);
+        const sql = `UPDATE ${table_name} SET TIME_ENTERED = DATETIME('now') WHERE id = ?`;
+        await database.run(sql, [entry_id]);
+    }
+    catch(error){console.log(error.message);}
+}
+
 async function updateParticipantPoints(phone_number)
 {
     try 
@@ -459,16 +470,16 @@ function insertPoints(table_name, points, phone_number) {
     });
 }
 
-function getPointsForm(req, res)
+function pointsForm(req, res)
 {
     const phone_number = req.params.PHONE_NUMBER;
     let sql = `SELECT NAME, POINTS FROM ${PARTICIPANTS_TABLE} WHERE PHONE_NUMBER = ?`;
     db.get(sql, phone_number, (err, row) =>{
         if(err){return console.log(err.message);}
-        sql = `SELECT POINTS, datetime(TIME_ENTERED, 'localtime') as TE FROM ${POINTS_TABLE} WHERE PHONE_NUMBER = ?`;
+        sql = `SELECT id, POINTS, datetime(TIME_ENTERED, 'localtime') as TE FROM ${POINTS_TABLE} WHERE PHONE_NUMBER = ?`;
         db.all(sql, phone_number, (err, points_rows) => {
             if(err) {return console.log(err.message);}
-            sql = `SELECT POINTS, datetime(TIME_ENTERED, 'localtime') as TE FROM ${REDEMPTIONS_TABLE} WHERE PHONE_NUMBER = ?`;
+            sql = `SELECT id, POINTS, datetime(TIME_ENTERED, 'localtime') as TE FROM ${REDEMPTIONS_TABLE} WHERE PHONE_NUMBER = ?`;
             db.all(sql, phone_number, (err, redeem_rows) =>{
                 if(err) {return console.log(err.message);}
                 res.render('points', {points_model: points_rows, redeem_model: redeem_rows, name: row.NAME, points: row.POINTS, phone_number: phone_number, p_sort_id: 'desc', t_sort_id: 'desc', format: format, parseISO: parseISO});
@@ -515,65 +526,58 @@ async function handlePoints(table_name, req, res) {
 function updatePointsForm(table_name, req, res)
 {
     const id = req.params.id;
-    const sql = `SELECT id, POINTS, PHONE_NUMBER, TIME_ENTERED FROM ${table_name} WHERE id = ?`;
+    const name = req.params.NAME;
+    const sql = `SELECT id, POINTS, PHONE_NUMBER, datetime(TIME_ENTERED, 'localtime') as TE FROM ${table_name} WHERE id = ?`;
+    const page_type = directToCorrectPointsPage(table_name);
     db.get(sql, id, (err, row) => {
-        if(err) {
-            return console.log(err.message);
-        }
-        res.render('handle_points', {model: row, format: format, parseISO: parseISO});
+        if(err) {return console.log(err.message);}
+        res.render('edit_points', {model: row, name: name, page: page_type, format: format, parseISO: parseISO});
     });
 }
 
 // Update points
-function updatePointsByID(table_name, req, res) 
+async function updatePointsByID(table_name, req, res) 
 {
     const id = req.params.id;
     const points = req.body.POINTS;
     const phone_number = req.body.PHONE_NUMBER;
     const sql = `UPDATE ${table_name} SET POINTS = ? WHERE id = ?`;
-    db.run(sql, [points, id], err =>
+    const database = await connectToDatabase(db_path);
+    try
     {
-        if (err)
-        {
-            return console.log(err.message);
-        }
+        await database.run(sql, [points, id]);
+        await updateParticipantPoints(phone_number);
+        await updateEntryTime(table_name, id);
         res.redirect(`/points/${phone_number}`);
-    });
+    }
+    catch(error){console.log(error.message);}
 }
 
-// Remove points form
-function deletePointsForm(table_name, req, res) {
+// Remove point entry form
+function removePointsForm(table_name, req, res) {
     const id = req.params.id;
-    let sql = `SELECT * FROM ${table_name} WHERE id = ?`;
-    db.get(sql, id, (err, row_1) => {
-        if(err) {
-            return console.log(err.message);
-        }
-        sql = `SELECT * FROM ${table_name} WHERE PHONE_NUMBER = ?`;
-        db.all(sql, row_1.PHONE_NUMBER, (err, row_2) => {
-        if(err) {
-            return console.log(err.message);
-        }
-        res.render('remove_points', {model: row_1, count: row_2.length, format: format, parseISO: parseISO});
-        });
+    const name = req.params.NAME;
+    const page_type = directToCorrectPointsPage(table_name);
+    let sql = `SELECT id, POINTS, PHONE_NUMBER, datetime(TIME_ENTERED, 'localtime') as TE FROM ${table_name} WHERE id = ?`;
+    db.get(sql, id, (err, row) => {
+        if(err) {return console.log(err.message);}
+        res.render('remove_points', {model: row, name: name, page: page_type, format: format, parseISO: parseISO});
     });
 }
 
 // Remove points
-async function removePoints(table_name, req, res) {
+async function removePointsByID(table_name, req, res) {
     const id = req.params.id;
     const phone_number = req.body.PHONE_NUMBER;
-    const total = parseInt(req.body.TOTAL);
-    if(total > 1)
-    {
-        const sql = `DELETE FROM ${table_name} WHERE id = ?`;
-        const database = await connectToDatabase(db_path);
-        await database.run(sql, id);
-        await updateParticipantPoints(phone_number);
-        // point_changes_global = true;
-        res.redirect(`/points/${phone_number}`);
-    }
-    else
+
+    const sql = `DELETE FROM ${table_name} WHERE id = ?`;
+    const database = await connectToDatabase(db_path);
+    await database.run(sql, id);
+    await updateParticipantPoints(phone_number);
+    // point_changes_global = true;
+    res.redirect(`/points/${phone_number}`);
+    
+    /*else
     {
         res.render('message', {
             message: {
@@ -582,6 +586,7 @@ async function removePoints(table_name, req, res) {
             link: `/points/${phone_number}`
         }});
     }
+    */
 }
 
 
@@ -639,5 +644,9 @@ module.exports = {
     getParticipantsByPointsAsc,
     handlePointsForm,
     handlePoints,
-    getPointsForm,
+    pointsForm,
+    updatePointsForm,
+    updatePointsByID,
+    removePointsForm,
+    removePointsByID,
 }

@@ -1,0 +1,47 @@
+<%- include("partials/_header") -%>
+<hr />
+<% if(page === "points") { %>
+  <h1>Edit Point Entry - (<%= name %>)</h1>
+<% } else { %>
+  <h1>Edit Redeemed Entry - (<%= name %>)</h1>
+<% } %>
+<hr />
+<% if(page === "points") { %>
+  <form action="/edit_point_entry/<%= model.id %>" method="post">
+<% } else { %>
+  <form action="/edit_redeemed_entry/<%= model.id %>" method="post">
+<% } %>
+  <div class="form-horizontal">
+
+    <div class="form-group row">
+      <label class="col-form-label col-sm-2" for="POINTS">Points</label>
+      <div class="col-sm-7">
+        <input class="form-control" name="POINTS" value="<%= model.POINTS %>" required />
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-form-label col-sm-2" for="TIME_ENTERED">Time Entered</label>
+      <div class="col-sm-7">
+        <input readonly class="form-control" name="TIME_ENTERED" value="<%= format(parseISO(model.TE), 'hh:mm a MMM dd yyyy') %>" />
+      </div>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-form-label col-sm-2" for="PHONE_NUMBER">Phone Number</label>
+        <div class="col-sm-7">
+          <input readonly class="form-control" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-form-label col-sm-2"></label>
+      <div class="col-sm-10">
+        <input type="submit" value="Modify" class="btn btn-default btn-warning"/>
+        <a class="btn btn-outline-dark cancel" href="/points/<%= model.PHONE_NUMBER %>">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<%- include("partials/_footer") -%>
