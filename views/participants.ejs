@@ -1,6 +1,6 @@
 <%- include('partials/_header.ejs') %>
 
-    <form action="/participants/search" method="get" id="search-form">
+    <form action="/participants/search/<%= page_number %>" method="get" id="search-form">
         <div class="input-group mb-3 do-not-print">
         <div class="input-group-prepend">
             <span class="input-group-text" id="basic-addon1">
@@ -40,7 +40,18 @@
             <% } %>
         </tbody>
         </table>
+
+        <div class="center">
+        <div class="pagination">
+          <a href="#">&laquo;</a>
+          <% for (let i = 1; i < count+1; i++) { %>
+            <a href="/participants/<%= search_pag %><%= i %><%= result %>"><%= i %></a>
+          <% } %>
+          <a href="#">&raquo;</a>  
+        </div>
         
+      </div>
+
         <a class="backButton pointer float-right do-not-print" href="/participants"><div class="leftChevron do-not-print"></div></a>
 
     </div>

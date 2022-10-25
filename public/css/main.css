@@ -67,3 +67,147 @@ tr:nth-child(even) {background-color: #f8f9fa;}
 .negative-points {
     color: red;
 }
+
+/* Modal */
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+
+  .modal-content {
+    width: 500px;
+    height: 100px;
+    margin:0 auto;
+    display:table;
+    position: absolute;
+    left: 0;
+    right:0;
+    top: 50%; 
+    border:1px solid;
+    -webkit-transform:translateY(-50%);
+    -moz-transform:translateY(-50%);
+    -ms-transform:translateY(-50%);
+    -o-transform:translateY(-50%);
+    transform:translateY(-50%);
+ }
+  
+ 
+  /* Modal Content */
+  /*
+  .modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 500px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s
+  }
+  */
+
+  /* Add Animation */
+  @-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0} 
+    to {top:0; opacity:1}
+  }
+  
+  @keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+  }
+  
+  /* The Close Button */
+  .close {
+    color: #cccccc;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  .modal-header {
+    margin-bottom: 8px;
+    padding: 2px 16px;
+    background-color: white;
+    color: #101010;
+  }
+  
+  .modal-body {padding: 2px 16px; vertical-align: middle;}
+  
+  .modal-footer {
+    margin-top: 24px;
+    padding: 8px 16px;
+    border-top: 1px solid #dddddd;
+    background-color: #eeeeee;
+    color: black;
+  }
+
+  /* Custom div info scroll box */
+  .info-scroll-box {
+    overflow-y: scroll;
+    padding: 3px;
+    height: 100px;
+    width: 100%;
+    border: 1px solid #dddddd;
+  }
+
+
+  /* images */
+  .warning-logo {
+    background-image: url('/images/warn.png');
+    width: 64px;
+    height: 64px;
+    margin-right: 9px;
+  }
+
+  .copper-cat-logo {
+    background-image: url('/images/ccplogo.png');
+    width: 93px;
+    height: 64px;
+    margin-right: 9px;
+  }
+
+  /* Pagination */
+
+  .center {
+    text-align: center;
+  }
+
+  .pagination {
+    display: inline-block;
+  }
+  
+  .pagination a {
+    color: black;
+    float: left;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color .3s;
+  }
+  
+  .pagination a.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .pagination a:hover:not(.active) {background-color: #ddd;}

@@ -6,11 +6,7 @@
   <h1>Remove Redeemed Entry? - (<%= name %>)</h1>
 <% } %>
 <hr />
-<% if(page === "points") { %>
-  <form action="/remove_point_entry/<%= model.id %>" method="post">
-<% } else { %>
-  <form action="/remove_redeemed_entry/<%= model.id %>" method="post">
-<% } %>
+
   <div class="form-horizontal">
 
     <div class="form-group row">
@@ -30,18 +26,50 @@
     <div class="form-group row">
         <label class="col-form-label col-sm-2" for="PHONE_NUMBER">Phone Number</label>
         <div class="col-sm-7">
-          <input readonly class="form-control" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>" />
+          <input readonly class="form-control" value="<%= model.PHONE_NUMBER %>" />
         </div>
     </div>
 
     <div class="form-group row">
       <label class="col-form-label col-sm-2"></label>
       <div class="col-sm-10">
-        <input type="submit" value="Remove" class="btn btn-default btn-danger"/>
+        <input type="button" id="modal-button" value="Remove" class="btn btn-default btn-danger"/>
         <a class="btn btn-outline-dark cancel" href="/points/<%= model.PHONE_NUMBER %>">Cancel</a>
       </div>
     </div>
   </div>
-</form>
+
+
+<!-- The Modal -->
+<div id="modal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5>Confirm Removal</h5>
+      <span id="close" class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="warning-logo float-left"></div>
+      <% if(page === "points") { %>
+      <p>The <%= model.POINTS %> point(s) entered on <%= format(parseISO(model.TE), 'MMM dd yyyy, hh:mm a') %>, for <%= name %>,  will be permanently deleted and will no longer be displayed on record.</p>
+      <% } else { %>
+      <p>The <%= model.POINTS %> point(s) redeemed on <%= format(parseISO(model.TE), 'MMM dd yyyy, hh:mm a') %>, for <%= name %>,  will be permanently deleted and will no longer be displayed on record.</p>
+      <% } %>
+    </div>
+    <div class="modal-footer">
+      <% if(page === "points") { %>
+        <form action="/remove_point_entry/<%= model.id %>" method="post">
+      <% } else { %>
+        <form action="/remove_redeemed_entry/<%= model.id %>" method="post">
+      <% } %>
+          <input type="hidden" name="POINTS" value="<%= model.POINTS %>"/>
+          <input type="hidden" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>">
+          <a class="btn btn-outline-dark cancel float-right" href="javascript:document.getElementById('close').click();">Cancel</a>
+          <input type="submit" value="Remove" class="btn btn-default btn-danger float-right" style="margin-right: 4px;"/>
+        </form>
+     </div>
+  </div>
+</div>
 
 <%- include("partials/_points_footer") -%>

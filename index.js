@@ -17,11 +17,17 @@ app.get('/', (req, res) => {
 });
 
 app.get('/participants', (req, res) => {
-    db.getParticipants(res);
+    db.getParticipants(res, 1);
 });
 
-app.get('/participants/search', (req, res) => {
-    db.searchParticipants(req, res);
+app.get('/participants/:page_number', (req, res) => {
+    let page_number = parseInt(req.params.page_number);
+    db.getParticipants(res, page_number);
+});
+
+app.get('/participants/search/:page_number', (req, res) => {
+    let page_number = parseInt(req.params.page_number);
+    db.searchParticipants(req, res, page_number);
 });
 
 // Add participant
@@ -38,7 +44,7 @@ app.get('/edit_participant/:PHONE_NUMBER', (req, res) => {
     db.editParticipantForm(req, res);
 });
 
-app.post('/edit_participant', (req, res) => {
+app.post('/edit_participant/:PHONE_NUMBER/:NAME/:EMAIL', (req, res) => {
     db.editParticipantByPhoneNumber(req, res);
 });
 
@@ -107,6 +113,7 @@ app.post('/redeem_points/:PHONE_NUMBER', (req, res) => {
     db.handlePoints(db.REDEMPTIONS_TABLE, req, res);
 });
 
+/*
 // Update Point Entry Form
 app.get('/edit_point_entry/:NAME/:id', (req, res) => {
     db.updatePointsForm(db.POINTS_TABLE, req, res);
@@ -126,6 +133,7 @@ app.get('/edit_redeemed_entry/:NAME/:id', (req, res) => {
 app.post('/edit_redeemed_entry/:id', (req, res) => {
     db.updatePointsByID(db.REDEMPTIONS_TABLE, req, res);
 });
+*/
 
 // Remove Point Entry Form
 app.get('/remove_point_entry/:NAME/:id', (req, res) => {

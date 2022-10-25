@@ -6,24 +6,19 @@
   <h1>Redeem Points - (<%= model.NAME %>)</h1>
 <% } %>
 <hr />
-<% if(page === "points") { %>
-  <form action="/add_points/<%= model.PHONE_NUMBER %>" method="post">
-<% } else { %>
-  <form action="/redeem_points/<%= model.PHONE_NUMBER %>" method="post">
-<% } %>
   <div class="form-horizontal">
 
     <div class="form-group row">
-      <label class="col-form-label col-sm-2" for="POINTS">Points</label>
+      <label class="col-form-label col-sm-2" for="points">Points</label>
       <div class="col-sm-7">
-        <input class="form-control" name="POINTS" id="p" value="" required />
+        <input type="number" class="form-control" id="points" value="" />
       </div>
     </div>
 
     <div class="form-group row">
-        <label class="col-form-label col-sm-2" for="PHONE_NUMBER">Phone Number</label>
+        <label class="col-form-label col-sm-2" for="phone_number">Phone Number</label>
         <div class="col-sm-7">
-          <input readonly class="form-control" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>" />
+          <input readonly class="form-control" id="phone_number" value="<%= model.PHONE_NUMBER %>" />
         </div>
     </div>
 
@@ -31,9 +26,9 @@
       <label class="col-form-label col-sm-2"></label>
       <div class="col-sm-10">
         <% if(page === "points") { %>
-          <input type="submit" value="Add" class="btn btn-default btn-success"/>
+          <input type="button" id="modal-button" value="Add" class="btn btn-default btn-success"/>
         <% } else { %>
-          <input type="submit" value="Redeem" class="btn btn-default btn-warning"/>
+          <input type="submit" id="modal-button" value="Redeem" class="btn btn-default btn-warning"/>
         <% } %>
         <a class="btn btn-outline-dark cancel" href="/points/<%= model.PHONE_NUMBER %>">Cancel</a>
       </div>
@@ -41,4 +36,45 @@
   </div>
 </form>
 
-<%- include("partials/_points_footer") -%>
+<!-- The Modal -->
+<div id="modal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    <div class="modal-header">
+      <% if(page === "points") { %>
+      <h5>Confirm Point(s) Entry</h5>
+      <% } else { %>
+      <h5>Confirm Redemption</h5>
+      <% } %>
+      <span id="close" class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="warning-logo float-left"></div>
+      <% if(page === "points") { %>
+      <p><span id="points_text"></span> point(s) will be added to <%= model.NAME %>.</p>
+      <% } else { %>
+      <p><span id="points_text"></span> point(s) will be redeemed from <%= model.NAME %>.</p>
+      <% } %>
+    </div>
+    <div class="modal-footer">
+      <% if(page === "points") { %>
+        <form action="/add_points/<%= model.id %>" method="post">
+      <% } else { %>
+        <form action="/redeem_points/<%= model.id %>" method="post">
+      <% } %>
+          <input type="hidden" name="POINTS" id="_points" value="" required>
+          <input type="hidden" name="PHONE_NUMBER" id="_phone_number" value="<%= model.PHONE_NUMBER %>">
+          <a class="btn btn-outline-dark cancel float-right" href="javascript:document.getElementById('close').click();">Cancel</a>
+          <input type="submit" value="Confirm" class="btn btn-default btn-warning float-right" style="margin-right: 4px;"/>
+        </form>
+     </div>
+  </div>
+</div>
+
+</div>
+<script src="/js/utils.js"></script>
+<script src="/js/modal.js"></script>
+<script src="/js/handle_points.js"></script>
+</body>
+</html>

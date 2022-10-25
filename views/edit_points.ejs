@@ -44,4 +44,36 @@
   </div>
 </form>
 
+<!-- The Modal -->
+<div id="modal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5>Confirm Removal</h5>
+      <span id="close" class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="warning-logo float-left"></div>
+      <% if(page === "points") { %>
+      <p>The <%= model.POINTS %> point(s) entered on <%= format(parseISO(model.TE), 'MMM dd yyyy, hh:mm a') %>, for <%= name %>,  will be permanently deleted and will no longer be displayed on record.</p>
+      <% } else { %>
+      <p>The <%= model.POINTS %> point(s) redeemed on <%= format(parseISO(model.TE), 'MMM dd yyyy, hh:mm a') %>, for <%= name %>,  will be permanently deleted and will no longer be displayed on record.</p>
+      <% } %>
+    </div>
+    <div class="modal-footer">
+      <% if(page === "points") { %>
+        <form action="/remove_point_entry/<%= model.id %>" method="post">
+      <% } else { %>
+        <form action="/remove_redeemed_entry/<%= model.id %>" method="post">
+      <% } %>
+          <input type="hidden" name="POINTS" value="<%= model.POINTS %>"/>
+          <input type="hidden" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>">
+          <a class="btn btn-outline-dark cancel float-right" href="javascript:document.getElementById('close').click();">Cancel</a>
+          <input type="submit" value="Remove" class="btn btn-default btn-danger float-right" style="margin-right: 4px;"/>
+        </form>
+     </div>
+  </div>
+</div>
+
 <%- include("partials/_points_footer") -%>

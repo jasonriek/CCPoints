@@ -3,27 +3,27 @@
 <h1>Edit Participant</h1>
 <hr />
 
-<form action="/edit_participant" method="post">
+
   <div class="form-horizontal">
 
 <div class="form-group row">
-    <label class="col-form-label col-sm-2" for="NAME">Name</label>
+    <label class="col-form-label col-sm-2" for="name">Name</label>
     <div class="col-sm-7">
-      <input autofocus class="form-control" name="NAME" value="<%= model.NAME %>" autocomplete="off" required />
+      <input autofocus class="form-control" id="name" value="<%= model.NAME %>" autocomplete="off" />
     </div>
 </div>
 
 <div class="form-group row">
-    <label class="col-form-label col-sm-2" for="PLAYER_ID">Phone Number</label>
+    <label class="col-form-label col-sm-2" for="phone_number">Phone Number</label>
     <div class="col-sm-7">
-      <input class="form-control" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>" autocomplete="off" required />
+      <input class="form-control" id="phone_number" value="<%= model.PHONE_NUMBER %>" autocomplete="off" />
     </div>
 </div>
 
 <div class="form-group row">
     <label class="col-form-label col-sm-2" for="EMAIL">Email</label>
     <div class="col-sm-7">
-      <input class="form-control" name="EMAIL" value="<%= model.EMAIL %>" autocomplete="off" />
+      <input class="form-control" id="email" value="<%= model.EMAIL %>" autocomplete="off" />
     </div>
 </div>
 
@@ -37,12 +37,48 @@
 <div class="form-group row">
   <label class="col-form-label col-sm-2"></label>
   <div class="col-sm-10">
-    <input type="submit" value="Update" class="btn btn-default btn-warning" />
+    <input type="button" id="modal-button" value="Update" class="btn btn-default btn-warning" />
     <a class="btn btn-outline-dark cancel" href="/participants">Cancel</a>
   </div>
 </div>
 
 </div>
-</form>
 
-<%- include("partials/_footer") -%>
+<!-- The Modal -->
+<div id="modal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    <div class="modal-header">
+
+      <h5>Confirm Modification</h5>
+
+      <span id="close" class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="warning-logo float-left"></div>
+      <p>Make changes (below) to the account for <%= model.NAME %>?</p>
+      <div class="info-scroll-box" id="changes">
+        <span id="name_change"></span><br id="name_br" style="display: none;" />
+        <span id="phone_number_change"></span><br id="phone_number_br"  style="display: none;" />
+        <span id="email_change"></span><br id="email_br" style="display: none;" />
+      </div>
+    </div>
+    <div class="modal-footer">
+        <form action="/edit_participant/<%= model.PHONE_NUMBER %>/<%= model.NAME %>/<%= model.EMAIL %>" method="post">
+          <input type="hidden" name="NAME" id="_name" value="<%= model.NAME %>">
+          <input type="hidden" name="PHONE_NUMBER" id="_phone_number" value="<%= model.PHONE_NUMBER %>">
+          <input type="hidden" name="EMAIL" id="_email" value="<%= model.EMAIL %>">
+          <a class="btn btn-outline-dark cancel float-right" href="javascript:document.getElementById('close').click();">Cancel</a>
+          <input type="submit" value="Confirm" class="btn btn-default btn-warning float-right" style="margin-right: 4px;" />
+        </form>
+     </div>
+  </div>
+</div>
+
+</div>
+<script src="/js/utils.js"></script>
+<script src="/js/modal.js"></script>
+<script src="/js/edit_participant.js"></script>
+</body>
+</html>

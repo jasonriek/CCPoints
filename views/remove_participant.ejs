@@ -3,20 +3,20 @@
 <h1>Remove Participant?</h1>
 <hr />
 
-<form action="/remove_participant" method="post">
-  <div class="form-horizontal">
+
+<div class="form-horizontal">
 
 <div class="form-group row">
     <label class="col-form-label col-sm-2" for="NAME">Name</label>
     <div class="col-sm-7">
-      <input readonly autofocus class="form-control" name="NAME" value="<%= model.NAME %>" autocomplete="off" required />
+      <input readonly autofocus class="form-control" name="NAME" value="<%= model.NAME %>" autocomplete="off"/>
     </div>
 </div>
 
 <div class="form-group row">
     <label class="col-form-label col-sm-2" for="PLAYER_ID">Phone Number</label>
     <div class="col-sm-7">
-      <input readonly class="form-control" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>" autocomplete="off" required />
+      <input readonly class="form-control" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>" autocomplete="off"/>
     </div>
 </div>
 
@@ -37,12 +37,35 @@
 <div class="form-group row">
   <label class="col-form-label col-sm-2"></label>
   <div class="col-sm-10">
-    <input type="submit" value="Delete" class="btn btn-default btn-danger" />
+    <input type="button" id="modal-button" value="Remove" class="btn btn-default btn-danger" />
     <a class="btn btn-outline-dark cancel" href="/participants">Cancel</a>
   </div>
 </div>
 
 </div>
-</form>
+
+
+<!-- The Modal -->
+<div id="modal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5>Confirm Removal</h5>
+      <span id="close" class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="warning-logo float-left"></div>
+      <p><%= model.NAME %>, with <%= model.POINTS %> point(s), will be permanently deleted.</p>
+    </div>
+    <div class="modal-footer">
+      <form action="/remove_participant" method="post">
+          <a class="btn btn-outline-dark cancel float-right" href="javascript:document.getElementById('close').click();">Cancel</a>
+          <input type="hidden" name="PHONE_NUMBER" value="<%= model.PHONE_NUMBER %>"/>
+          <input type="submit" value="Remove" class="btn btn-default btn-danger float-right" style="margin-right: 4px;"/>
+        </form>
+     </div>
+  </div>
+</div>
 
 <%- include("partials/_footer") -%>
