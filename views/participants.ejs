@@ -43,11 +43,19 @@
 
         <div class="center">
         <div class="pagination">
-          <a href="#">&laquo;</a>
-          <% for (let i = 1; i < count+1; i++) { %>
-            <a href="/participants/<%= search_pag %><%= i %><%= result %>"><%= i %></a>
+          <% if(parseInt(page_number) > 1) { %>
+            <a href="/participants/<%= search_pag %><%= parseInt(page_number) - 1 %><%= result %>">&laquo;</a>
           <% } %>
-          <a href="#">&raquo;</a>  
+          <% for (let i = 1; (i < count+1 && i < 8); i++) { %>
+            <% if(i === parseInt(page_number)) { %>
+              <a class="active" href="/participants/<%= search_pag %><%= i %><%= result %>"><%= i %></a>
+            <% } else { %>
+              <a href="/participants/<%= search_pag %><%= i %><%= result %>"><%= i %></a>
+            <% } %>
+          <% } %>
+          <% if(parseInt(page_number) < count) { %>
+            <a href="/participants/<%= search_pag %><%= parseInt(page_number) + 1 %><%= result %>">&raquo;</a>
+          <% } %>  
         </div>
         
       </div>
@@ -80,5 +88,9 @@
       <form action="/participants_points_asc" method="get">
         <button type="submit" id="p-asc-button" style="visibility: hidden;"/></button>
         <input type="hidden" value="" name="h">
+      </form>
+
+      <form action="/participants" method="get">
+        <button type="submit" id="reset" style="visibility: hidden;"/></button>
       </form>
 <%- include('partials/_footer.ejs') %>

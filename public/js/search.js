@@ -5,7 +5,11 @@ let search_form = document.getElementById('search-form');
 search_entry.addEventListener("keypress", function(event) {
     // If the user presses the "Enter" key on the keyboard
     if(event.key === "Enter") {
-        //search_form.setAttribute('action', `/participants/${this.value}`);
+        if(this.value)
+        {
+            search_form.setAttribute('action', `/participants/search/1`);
+        }
+            
         event.preventDefault();
         search_button.click();
     }
