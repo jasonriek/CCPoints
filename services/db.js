@@ -8,6 +8,7 @@ const POINTS_TABLE = 'CC_POINTS';
 const REDEMPTIONS_TABLE = 'REDEMPTIONS';
 const Database = require('better-sqlite3');
 const database = new Database(db_path, { verbose: console.log });
+const QUERY_LIMIT = 10;
 
 // $$$ GLOBALS $$$
 // let point_changes_global = false;
@@ -142,19 +143,18 @@ function getParticipants(res, page_number = 1) {
         let pagination_count = 0;
         let remainder = 0;
         let count = 0;
-        console.log("here...");
         let sql = `SELECT COUNT(*) AS 'count' FROM ${PARTICIPANTS_TABLE}`;
-        let offset = (5 * (page_number - 1));
+        let offset = (QUERY_LIMIT * (page_number - 1));
         
         const row_query =  database.prepare(sql);
         const row = row_query.get();
         count = row.count;
-        pagination_count = Math.trunc(count / 5);
-        remainder = (count % 5);
+        pagination_count = Math.trunc(count / QUERY_LIMIT);
+        remainder = (count % QUERY_LIMIT);
         if(remainder)
             pagination_count++;
         
-        sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE ACTIVE = 1 ORDER BY NAME LIMIT 5 OFFSET ${offset}`;
+        sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE ACTIVE = 1 ORDER BY NAME LIMIT ${QUERY_LIMIT} OFFSET ${offset};`;
         const all_participants_query = database.prepare(sql);
         const rows = all_participants_query.all();
         
@@ -172,107 +172,6 @@ function getParticipants(res, page_number = 1) {
                                     page_number: `${page_number}`});
     }
     catch (error){return console.error(error);}
-}
-
-// Create an ordered render for particpants
-function participantOrderRender(res, rows, order, order_by, last_search)
-{
-    let order_id = utils.inverseSortOrder(order.toLowerCase());
-    let n_sort_id = "desc";
-    let pn_sort_id = "desc";
-    let e_sort_id = "desc";
-    let p_sort_id = "desc";
-
-    switch(order_by)
-    {
-        case "NAME":
-            n_sort_id = order_id;
-            break;
-        case "PHONE_NUMBER":
-            pn_sort_id = order_id;
-            break;
-        case "EMAIL":
-            e_sort_id = order_id;
-            break;
-        case "POINTS":
-            p_sort_id = order_id;
-            break;
-    }
-    res.render('participants', {model: rows, 
-                                search: false, 
-                                n_sort_id: n_sort_id,  
-                                pn_sort_id: pn_sort_id, 
-                                e_sort_id: e_sort_id, 
-                                p_sort_id: p_sort_id, 
-                                last_search: last_search});
-}
-
-// Get the participants by some kind of order
-function getParticipantsByOrder(req, res, order_by, desc=true)
-{
-    let participant = '';
-    let values = [];
-    let order = 'ASC';
-    let last_search = '';
-    if(desc)
-        order = 'DESC';
-    let sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE ACTIVE = 1 ORDER BY ${order_by} ${order}`;
-    if(Object.values(req.query).length && req.query.h)
-    {
-        sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE (INSTR(LOWER(NAME), LOWER(?)) > 0 OR INSTR(PHONE_NUMBER, ?) > 0) AND ACTIVE = 1 ORDER BY ${order_by} ${order}`;
-        participant = utils.strip(req.query.h);
-        if(!utils.containsAnyLetters(participant))
-            participant = participant.replace(/[^0-9]/g, '');
-        last_search = participant;
-        values  = [participant, participant];
-    }
-    try 
-    {
-        const rows_query = database.prepare(sql);
-        const rows = rows_query.all(values);
-        participantOrderRender(res, rows, order, order_by, last_search);
-    }
-    catch(error){return console.error(error)}
-}
-
-// Get all of the active participants in descending order by player name
-function getParticipantsByNameDesc(req, res) {
-    getParticipantsByOrder(req, res, "NAME", true);
-}
-
-// Get all of the active participants in asscending order by player name
-function getParticipantsByNameAsc(req, res) {
-    getParticipantsByOrder(req, res, "NAME", false);
-}
-
-// Get all of the active participants in descending order by player id
-function getParticipantsByPhoneNumberDesc(req, res) {
-    getParticipantsByOrder(req, res, "PHONE_NUMBER", true);
-}
-
-// Get all of the active participants in ascending order by player id
-function getParticipantsByPhoneNumberAsc(req, res) {
-    getParticipantsByOrder(req, res, "PHONE_NUMBER", false);
-}
-
-// Get all of the active participants in descending order by email
-function getParticipantsByEmailDesc(req, res) {
-    getParticipantsByOrder(req, res, "EMAIL", true);
-}
-
-// Get all of the active participants in ascending order by email
-function getParticipantsByEmailAsc(req, res) {
-    getParticipantsByOrder(req, res, "EMAIL", false);
-}
-
-// Get all of the active participants in descending order by points
-function getParticipantsByPointsDesc(req, res) {
-    getParticipantsByOrder(req, res, "POINTS", true);
-}
-
-// Get all of the active participants in ascending order by points
-function getParticipantsByPointsAsc(req, res) {
-    getParticipantsByOrder(req, res, "POINTS", false);
 }
 
 // Search Participants
@@ -297,19 +196,19 @@ function searchParticipants(req, res, page_number=1)
     let remainder = 0;
     let count = 0;
     let sql = `SELECT COUNT(*) AS 'count' FROM ${PARTICIPANTS_TABLE} WHERE (INSTR(LOWER(NAME), LOWER(?)) > 0 OR INSTR(PHONE_NUMBER, ?) > 0) AND ACTIVE = 1`;
-    let offset = (5 * (page_number - 1));
+    let offset = (QUERY_LIMIT * (page_number - 1));
     
         
     const row_query_1 =  database.prepare(sql);
     const row_1 = row_query_1.get([participant, participant]);
     count = row_1.count;
     console.log(`search count ${count}`);
-    pagination_count = Math.trunc(count / 5);
-    remainder = (count % 5);
+    pagination_count = Math.trunc(count / QUERY_LIMIT);
+    remainder = (count % QUERY_LIMIT);
     if(remainder)
         pagination_count++;
     
-    sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE (INSTR(LOWER(NAME), LOWER(?)) > 0 OR INSTR(PHONE_NUMBER, ?) > 0) AND ACTIVE = 1 LIMIT 5 OFFSET ${offset};`;
+    sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE (INSTR(LOWER(NAME), LOWER(?)) > 0 OR INSTR(PHONE_NUMBER, ?) > 0) AND ACTIVE = 1 LIMIT ${QUERY_LIMIT} OFFSET ${offset};`;
     // OR INSTR(PHONE_NUMBER, "?") > 0;
     if(participant.length)
     {
@@ -377,10 +276,11 @@ function editParticipantForm(req, res) {
     try 
     {
         const phone_number = req.params.PHONE_NUMBER;
+        const page_number = req.params.page_number;
         const sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE PHONE_NUMBER = ?`;
         const rows_query = database.prepare(sql);
         const row = rows_query.get([phone_number]);
-        res.render('edit_participant', {model: row});
+        res.render('edit_participant', {model: row, page_number: page_number});
     }
     catch(error){return console.error(error);}
 }
@@ -435,11 +335,12 @@ function setParticipantToActive(phone_number)
 function removeParticipantForm(req, res) {
     try
     {
+        const page_number = req.params.page_number;
         const phone_number = req.params.PHONE_NUMBER;
         const sql = `SELECT * FROM ${PARTICIPANTS_TABLE} WHERE PHONE_NUMBER = ?`;
         const row_query =  database.prepare(sql);
         const row = row_query.get([phone_number]);
-        res.render('remove_participant', {model: row});
+        res.render('remove_participant', {model: row, page_number: page_number});
     }
     catch(error){return console.error(error);}
 }
@@ -643,14 +544,6 @@ module.exports = {
     editParticipantByPhoneNumber,
     removeParticipantForm,
     removeParticipantByPhoneNumber,
-    getParticipantsByNameDesc,
-    getParticipantsByNameAsc,
-    getParticipantsByPhoneNumberDesc,
-    getParticipantsByPhoneNumberAsc,
-    getParticipantsByEmailDesc,
-    getParticipantsByEmailAsc,
-    getParticipantsByPointsDesc,
-    getParticipantsByPointsAsc,
     handlePointsForm,
     handlePoints,
     pointsForm,

@@ -15,9 +15,9 @@
         <table class="table table-hover">
         <thead>
           <tr>
-            <th>Phone # <input id="pn-<%= pn_sort_id %>" name="sort" type="image" src="/images/sort.png" title="sort by phone number"></th>
-            <th>Name <input id="n-<%= n_sort_id %>" name="sort" type="image" src="/images/sort.png" title="sort by participant name"></th>
-            <th>Points <input id="p-<%= p_sort_id %>" name="sort" type="image" src="/images/sort.png" title="sort by points"></th>
+            <th>Phone # </th>
+            <th>Name </th>
+            <th>Points </th>
 
             <th class="d-print-none">
                 <a class="btn btn-sm btn-success" href="/add_participant" title="Add a new participant">Add Participant</a>
@@ -33,8 +33,8 @@
                     <b class="float-left">&nbsp;<%= participant.POINTS %></b>
                 </td>
                 <td class="d-print-none">
-                  <a href="/edit_participant/<%= participant.PHONE_NUMBER %>"><img src="/images/edit.png" title="edit"></a>
-                  <a href="/remove_participant/<%= participant.PHONE_NUMBER %>"><img src="/images/x.png" title="remove"></a>
+                  <a href="/edit_participant/<%= participant.PHONE_NUMBER %>/<%= page_number %>"><img src="/images/edit.png" title="edit"></a>
+                  <a href="/remove_participant/<%= participant.PHONE_NUMBER %>/<%= page_number %>"><img src="/images/x.png" title="remove"></a>
                 </td>
               </tr>
             <% } %>
@@ -60,35 +60,7 @@
         
       </div>
 
-        <a class="backButton pointer float-right do-not-print" href="/participants"><div class="leftChevron do-not-print"></div></a>
-
     </div>
-
-
-    <form action="/participants_name_desc" method="get">
-        <button type="submit" id="n-desc-button" style="visibility: hidden;"/></button>
-        <input type="hidden" value="" name="h">
-      </form>
-      <form action="/participants_name_asc" method="get">
-        <button type="submit" id="n-asc-button" style="visibility: hidden;"/></button>
-        <input type="hidden" value="" name="h">
-      </form>
-      <form action="/participants_phone_number_desc" method="get">
-        <button type="submit" id="pn-desc-button" style="visibility: hidden;"/></button>
-        <input type="hidden" value="" name="h">
-      </form>
-      <form action="/participants_phone_number_asc" method="get">
-        <button type="submit" id="pn-asc-button" style="visibility: hidden;"/></button>
-        <input type="hidden" value="" name="h">
-      </form>
-      <form action="/participants_points_desc" method="get">
-        <button type="submit" id="p-desc-button" style="visibility: hidden;"/></button>
-        <input type="hidden" value="" name="h">
-      </form>
-      <form action="/participants_points_asc" method="get">
-        <button type="submit" id="p-asc-button" style="visibility: hidden;"/></button>
-        <input type="hidden" value="" name="h">
-      </form>
 
       <form action="/participants" method="get">
         <button type="submit" id="reset" style="visibility: hidden;"/></button>

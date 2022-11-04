@@ -13,11 +13,19 @@ db.createTables(db.table_creation_SQL);
 
 
 app.get('/', (req, res) => {
-    res.redirect('participants');
+    res.redirect('participants/1');
 });
 
 app.get('/participants', (req, res) => {
-    db.getParticipants(res, 1);
+    switch(req.originalUrl)
+    {
+        case '/participants':
+            res.redirect('participants/1');
+            break;
+        case '/participants/':
+            res.redirect('1');
+            break;
+    }
 });
 
 app.get('/participants/:page_number', (req, res) => {
@@ -40,7 +48,7 @@ app.post('/add_participant', (req, res) => {
 });
 
 // edit participant
-app.get('/edit_participant/:PHONE_NUMBER', (req, res) => {
+app.get('/edit_participant/:PHONE_NUMBER/:page_number', (req, res) => {
     db.editParticipantForm(req, res);
 });
 
@@ -49,46 +57,13 @@ app.post('/edit_participant/:PHONE_NUMBER/:NAME/:EMAIL', (req, res) => {
 });
 
 // remove participant
-app.get('/remove_participant/:PHONE_NUMBER', (req, res) => {
+app.get('/remove_participant/:PHONE_NUMBER/:page_number', (req, res) => {
     db.removeParticipantForm(req, res);
 });
 
 app.post('/remove_participant', (req, res) => {
     db.removeParticipantByPhoneNumber(req, res);
 });
-
-/* ### ### ### SORTING ### ### ### */
-
-// NAME SORT
-// #############################################################
-app.get('/participants_name_desc', (req, res) => {
-    db.getParticipantsByNameDesc(req, res);
-});
-
-app.get('/participants_name_asc', (req, res) => {
-    db.getParticipantsByNameAsc(req, res);
-});
-
-// PHONE_NUMBER SORT
-// #############################################################
-app.get('/participants_phone_number_desc', (req, res) => {
-    db.getParticipantsByPhoneNumberDesc(req, res);
-});
-
-app.get('/participants_phone_number_asc', (req, res) => {
-    db.getParticipantsByPhoneNumberAsc(req, res);
-});
-
-// POINTS SORT
-// #############################################################
-app.get('/participants_points_desc', (req, res) => {
-    db.getParticipantsByPointsDesc(req, res);
-});
-
-app.get('/participants_points_asc', (req, res) => {
-    db.getParticipantsByPointsAsc(req, res);
-});
-// #############################################################
 
 // POINTS
 app.get('/points/:PHONE_NUMBER', (req, res) => {
